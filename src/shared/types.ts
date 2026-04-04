@@ -22,3 +22,11 @@ export interface ContentMessage {
   status: UploadStatus;
   error?: string;
 }
+
+export interface LastSubmission {
+  status: "success" | "error";
+  problemTitle: string;
+  problemNumber: number;
+  timestamp: number; // Date.now()
+  error?: string;
+}

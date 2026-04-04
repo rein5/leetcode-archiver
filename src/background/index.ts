@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import { getSettings } from "../shared/storage";
+import { getSettings, saveLastSubmission } from "../shared/storage";
 import { putFile } from "../shared/github";
 import { getExtension } from "../shared/languages";
 import type { Submission, ContentMessage } from "../shared/types";
@@ -127,6 +127,7 @@ async function handleAcceptedSubmission(
   submission: Submission,
   tabId: number
 ) {
+  setBadge("uploading");
   notifyTab(tabId, { type: "UPLOAD_STATUS", status: "uploading" });
 
   try {
@@ -138,11 +139,27 @@ async function handleAcceptedSubmission(
     }
 
     await commitSubmission(settings.githubToken, settings.repoFullName, submission);
+
+    setBadge("success");
     notifyTab(tabId, { type: "UPLOAD_STATUS", status: "success" });
+    await saveLastSubmission({
+      status: "success",
+      problemTitle: submission.problemTitle,
+      problemNumber: submission.problemNumber,
+      timestamp: Date.now(),
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[LeetCode Archiver] Upload failed:", message);
+    setBadge("error");
     notifyTab(tabId, { type: "UPLOAD_STATUS", status: "error", error: message });
+    await saveLastSubmission({
+      status: "error",
+      problemTitle: submission.problemTitle,
+      problemNumber: submission.problemNumber,
+      timestamp: Date.now(),
+      error: message,
+    });
   }
 }
 
@@ -172,6 +189,36 @@ function buildDescription(s: Submission): string {
   if (s.runtimeMs !== null) lines.push(`**Runtime:** ${s.runtimeMs} ms`);
   if (s.memoryMb !== null) lines.push(`**Memory:** ${s.memoryMb} MB`);
   return lines.join("\n") + "\n";
+}
+
+// ---------------------------------------------------------------------------
+// Extension badge indicator
+// ---------------------------------------------------------------------------
+
+let badgeTimer: ReturnType<typeof setTimeout> | null = null;
+let spinnerTimer: ReturnType<typeof setInterval> | null = null;
+let spinnerFrame = 0;
+const SPINNER = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+
+function setBadge(status: "uploading" | "success" | "error") {
+  if (badgeTimer) { clearTimeout(badgeTimer); badgeTimer = null; }
+  if (spinnerTimer) { clearInterval(spinnerTimer); spinnerTimer = null; }
+
+  if (status === "uploading") {
+    browser.browserAction.setBadgeBackgroundColor({ color: "#4A90E2" });
+    spinnerFrame = 0;
+    spinnerTimer = setInterval(() => {
+      browser.browserAction.setBadgeText({ text: SPINNER[spinnerFrame % SPINNER.length] });
+      spinnerFrame++;
+    }, 100);
+    return;
+  }
+
+  const color = status === "success" ? "#5CB85C" : "#D9534F";
+  const text  = status === "success" ? "✓" : "✗";
+  browser.browserAction.setBadgeBackgroundColor({ color });
+  browser.browserAction.setBadgeText({ text });
+  badgeTimer = setTimeout(() => browser.browserAction.setBadgeText({ text: "" }), 4000);
 }
 
 // ---------------------------------------------------------------------------
