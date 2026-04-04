@@ -1,0 +1,37 @@
+{
+  "name": "leetcode-archiver",
+  "version": "1.0.0",
+  "description": "Firefox extension that backs up accepted LeetCode submissions to a private GitHub repository.",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "run:firefox": "web-ext run --source-dir dist --firefox-profile leetcode-archiver-dev",
+    "package": "web-ext build --source-dir dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rein5/leetcode-archiver.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+"bugs": {
+    "url": "https://github.com/rein5/leetcode-archiver/issues"
+  },
+  "homepage": "https://github.com/rein5/leetcode-archiver#readme",
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/webextension-polyfill": "^0.12.5",
+    "@vitejs/plugin-react": "^6.0.1",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.3",
+    "web-ext": "^10.1.0",
+    "webextension-polyfill": "^0.12.0"
+  },
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  }
+}

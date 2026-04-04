@@ -1,0 +1,24 @@
+export interface Settings {
+  githubToken: string;
+  repoFullName: string; // "owner/repo"
+}
+
+export interface Submission {
+  problemSlug: string;
+  problemNumber: number;
+  problemTitle: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  language: string;
+  code: string;
+  runtimeMs: number | null;
+  memoryMb: number | null;
+  submissionId: string;
+}
+
+export type UploadStatus = "uploading" | "success" | "error";
+
+export interface ContentMessage {
+  type: "UPLOAD_STATUS";
+  status: UploadStatus;
+  error?: string;
+}
