@@ -6,7 +6,8 @@
     "build": "node build.mjs",
     "dev": "node build.mjs --watch",
     "run:firefox": "web-ext run --source-dir dist",
-    "package": "web-ext build --source-dir dist"
+    "package": "web-ext build --source-dir dist",
+    "sign": "web-ext sign --source-dir dist --channel unlisted"
   },
   "repository": {
     "type": "git",
