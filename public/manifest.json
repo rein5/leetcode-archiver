@@ -31,8 +31,8 @@
   },
 
   "icons": {
-    "48": "icons/icon-48.png",
-    "96": "icons/icon-96.png"
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
   },
 
   "browser_specific_settings": {
