@@ -8,8 +8,6 @@ import type { Submission, ContentMessage } from "../shared/types";
 // GraphQL response interception via filterResponseData (Firefox MV2 only)
 // ---------------------------------------------------------------------------
 
-console.log("[LeetCode Archiver] background script loaded");
-
 const LEETCODE_GRAPHQL = "*://leetcode.com/graphql*";
 
 browser.webRequest.onBeforeRequest.addListener(
@@ -18,12 +16,9 @@ browser.webRequest.onBeforeRequest.addListener(
   ["blocking"]
 );
 
-console.log("[LeetCode Archiver] webRequest listener registered for", LEETCODE_GRAPHQL);
-
 function interceptGraphQL(
   details: browser.WebRequest.OnBeforeRequestDetailsType
 ): browser.WebRequest.BlockingResponse {
-  console.log("[LeetCode Archiver] intercepted request:", details.url);
   const filter = browser.webRequest.filterResponseData(details.requestId);
   const decoder = new TextDecoder("utf-8");
   const chunks: ArrayBuffer[] = [];
@@ -43,12 +38,11 @@ function interceptGraphQL(
     }, new ArrayBuffer(0));
 
     const text = decoder.decode(full);
-    console.log("[LeetCode Archiver] response body (~200 chars):", text.slice(0, 200));
     try {
       const json = JSON.parse(text);
       handleGraphQLResponse(json, details.tabId);
-    } catch (e) {
-      console.warn("[LeetCode Archiver] failed to parse response JSON:", e);
+    } catch {
+      // Not JSON or not relevant — ignore
     }
   };
 
@@ -89,16 +83,8 @@ function handleGraphQLResponse(json: unknown, tabId: number) {
     const details = response?.data?.submissionDetails;
     if (!details) continue;
 
-    console.log("[LeetCode Archiver] statusCode:", details.statusCode);
-    console.log("[LeetCode Archiver] lang:", details.lang);
-    console.log("[LeetCode Archiver] question:", details.question);
-    console.log("[LeetCode Archiver] code (first 100):", details.code?.slice(0, 100));
-
     // statusCode 10 = Accepted in LeetCode's system
-    if (details.statusCode !== 10) {
-      console.log("[LeetCode Archiver] submission not accepted, statusCode:", details.statusCode);
-      continue;
-    }
+    if (details.statusCode !== 10) continue;
 
     const question = details.question;
     if (!question?.titleSlug || !question?.questionId) continue;
