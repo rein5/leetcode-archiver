@@ -47,7 +47,7 @@ Before the extension can commit anything, you need to give it a GitHub token sco
 1. Go to **GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens**
 2. Click **Generate new token**
 3. Set **Resource owner** to your account
-4. Under **Repository access**, choose **Only select repositories** and pick your solutions repo (create one first if needed — make it private)
+4. Under **Repository access**, choose **Only select repositories** and pick your solutions repo (create one first if needed)
 5. Under **Permissions → Repository permissions**, set **Contents** to **Read and write**
 6. Generate and copy the token (`github_pat_…`)
 
