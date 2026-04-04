@@ -2,6 +2,8 @@
 
 A Firefox extension that automatically backs up accepted LeetCode submissions to a private GitHub repository.
 
+**[Install from Firefox Add-ons](https://addons.mozilla.org/firefox/addon/leetcode-archiver/)** <!-- update once listed -->
+
 Every time a submission is accepted, the extension commits two files:
 
 ```
@@ -18,23 +20,7 @@ Requires only a fine-grained GitHub token scoped to a single repository — no b
 
 ## Installation
 
-### Option A — Firefox Developer Edition (recommended, no rebuild needed)
-
-1. Install [Firefox Developer Edition](https://www.mozilla.org/firefox/developer/)
-2. Clone this repo and build once:
-   ```bash
-   git clone https://github.com/rein5/leetcode-archiver
-   cd leetcode-archiver
-   npm install
-   npm run build
-   ```
-3. In Firefox Developer Edition, go to `about:debugging#/runtime/this-firefox`
-4. Click **Load Temporary Add-on…** → select `dist/manifest.json`
-5. The extension now persists across browser restarts
-
-### Option B — Regular Firefox (temporary, resets on browser close)
-
-Same steps as above, but the extension unloads when Firefox closes. Reload it from `about:debugging` after each restart.
+Install directly from the [Firefox Add-ons page](https://addons.mozilla.org/firefox/addon/leetcode-archiver/).
 
 ---
 
@@ -79,6 +65,6 @@ npm run build          # production build → dist/
 npm run dev            # watch mode, rebuilds on save
 ```
 
-To test changes, reload the extension in `about:debugging` after each build.
+To test changes, load `dist/manifest.json` as a temporary add-on via `about:debugging#/runtime/this-firefox` and reload after each build.
 
 **Stack:** TypeScript + React, built with Vite. Firefox MV2 (uses `webRequest.filterResponseData` to read GraphQL response bodies — not available in MV3 or Chrome).
