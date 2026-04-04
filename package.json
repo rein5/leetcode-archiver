@@ -5,7 +5,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
-    "run:firefox": "web-ext run --source-dir dist --firefox-profile leetcode-archiver-dev",
+    "run:firefox": "web-ext run --source-dir dist",
     "package": "web-ext build --source-dir dist"
   },
   "repository": {
