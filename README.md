@@ -2,7 +2,7 @@
 
 A Firefox extension that automatically backs up accepted LeetCode submissions to a private GitHub repository.
 
-**[Install from Firefox Add-ons](https://addons.mozilla.org/firefox/addon/leetcode-archiver/)** <!-- update once listed -->
+**[Install from Firefox Add-ons](https://addons.mozilla.org/firefox/addon/leetcode-archiver/)**
 
 Every time a submission is accepted, the extension commits two files:
 
@@ -67,4 +67,4 @@ npm run dev            # watch mode, rebuilds on save
 
 To test changes, load `dist/manifest.json` as a temporary add-on via `about:debugging#/runtime/this-firefox` and reload after each build.
 
-**Stack:** TypeScript + React, built with Vite. Firefox MV2 (uses `webRequest.filterResponseData` to read GraphQL response bodies — not available in MV3 or Chrome).
+**Stack:** TypeScript + Preact, built with Vite. Firefox MV2 (uses `webRequest.filterResponseData` to read GraphQL response bodies — not available in MV3 or Chrome).

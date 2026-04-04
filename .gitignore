@@ -2,3 +2,5 @@ node_modules/
 dist/
 web-ext-artifacts/
 *.zip
+*.png
+.claude/
