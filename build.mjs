@@ -1,5 +1,5 @@
 import { build } from "vite";
-import react from "@vitejs/plugin-react";
+import preact from "@preact/preset-vite";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -16,7 +16,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function buildIife(name, entry, cleanDist) {
   await build({
-    plugins: [react()],
+    plugins: [preact()],
     root: resolve(__dirname, "src"),
     // Only copy public/ (manifest, icons) on the first build
     publicDir: cleanDist ? resolve(__dirname, "public") : false,
@@ -51,7 +51,7 @@ await buildIife(
 
 // Popup: standard HTML entry point, ES modules are fine in a web page context
 await build({
-  plugins: [react()],
+  plugins: [preact()],
   root: resolve(__dirname, "src"),
   publicDir: false,
   build: {
