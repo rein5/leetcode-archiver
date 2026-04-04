@@ -8,6 +8,8 @@ import type { Submission, ContentMessage } from "../shared/types";
 // GraphQL response interception via filterResponseData (Firefox MV2 only)
 // ---------------------------------------------------------------------------
 
+console.log("[LeetCode Archiver] background script loaded");
+
 const LEETCODE_GRAPHQL = "*://leetcode.com/graphql*";
 
 browser.webRequest.onBeforeRequest.addListener(
@@ -16,12 +18,14 @@ browser.webRequest.onBeforeRequest.addListener(
   ["blocking"]
 );
 
+console.log("[LeetCode Archiver] webRequest listener registered for", LEETCODE_GRAPHQL);
+
 function interceptGraphQL(
   details: browser.WebRequest.OnBeforeRequestDetailsType
 ): browser.WebRequest.BlockingResponse {
+  console.log("[LeetCode Archiver] intercepted request:", details.url);
   const filter = browser.webRequest.filterResponseData(details.requestId);
   const decoder = new TextDecoder("utf-8");
-  const encoder = new TextEncoder();
   const chunks: ArrayBuffer[] = [];
 
   filter.ondata = (event: { data: ArrayBuffer }) => {
@@ -39,11 +43,12 @@ function interceptGraphQL(
     }, new ArrayBuffer(0));
 
     const text = decoder.decode(full);
+    console.log("[LeetCode Archiver] response body (~200 chars):", text.slice(0, 200));
     try {
       const json = JSON.parse(text);
       handleGraphQLResponse(json, details.tabId);
-    } catch {
-      // Not JSON or not relevant — ignore
+    } catch (e) {
+      console.warn("[LeetCode Archiver] failed to parse response JSON:", e);
     }
   };
 
@@ -54,54 +59,70 @@ function interceptGraphQL(
 // Parse GraphQL response and extract accepted submission
 // ---------------------------------------------------------------------------
 
-interface SubmissionDetailsData {
-  submissionDetails?: {
-    id?: string;
-    statusCode?: number; // 10 = Accepted
-    lang?: { name?: string; verboseName?: string };
-    code?: string;
-    runtimeMs?: number;
-    memoryMb?: number;
-    question?: {
-      questionFrontendId?: string;
-      title?: string;
-      titleSlug?: string;
-      difficulty?: string;
-    };
+interface SubmissionDetails {
+  id?: string;
+  statusCode?: number; // 10 = Accepted
+  lang?: { name?: string; verboseName?: string };
+  code?: string;
+  runtime?: number;  // ms
+  memory?: number;   // MB
+  question?: {
+    questionId?: string;        // numeric string, e.g. "1"
+    titleSlug?: string;         // e.g. "two-sum"
+    difficulty?: string;        // may not be present in this query
+  };
+}
+
+interface GraphQLResponse {
+  data?: {
+    submissionDetails?: SubmissionDetails;
   };
 }
 
 function handleGraphQLResponse(json: unknown, tabId: number) {
   // LeetCode can return an array of responses (batched queries)
-  const responses: SubmissionDetailsData[] = Array.isArray(json)
+  const responses: GraphQLResponse[] = Array.isArray(json)
     ? json
-    : [json as SubmissionDetailsData];
+    : [json as GraphQLResponse];
 
   for (const response of responses) {
-    const details = response?.submissionDetails;
+    const details = response?.data?.submissionDetails;
     if (!details) continue;
 
+    console.log("[LeetCode Archiver] statusCode:", details.statusCode);
+    console.log("[LeetCode Archiver] lang:", details.lang);
+    console.log("[LeetCode Archiver] question:", details.question);
+    console.log("[LeetCode Archiver] code (first 100):", details.code?.slice(0, 100));
+
     // statusCode 10 = Accepted in LeetCode's system
-    if (details.statusCode !== 10) continue;
+    if (details.statusCode !== 10) {
+      console.log("[LeetCode Archiver] submission not accepted, statusCode:", details.statusCode);
+      continue;
+    }
 
     const question = details.question;
-    if (!question?.titleSlug || !question?.questionFrontendId) continue;
+    if (!question?.titleSlug || !question?.questionId) continue;
 
     const submission: Submission = {
       submissionId: String(details.id ?? ""),
       problemSlug: question.titleSlug,
-      problemNumber: parseInt(question.questionFrontendId, 10),
-      problemTitle: question.title ?? question.titleSlug,
+      problemNumber: parseInt(question.questionId, 10),
+      problemTitle: titleFromSlug(question.titleSlug),
       difficulty: normalizeDifficulty(question.difficulty),
       language: details.lang?.name ?? "unknown",
       code: details.code ?? "",
-      runtimeMs: details.runtimeMs ?? null,
-      memoryMb: details.memoryMb ?? null,
+      runtimeMs: details.runtime ?? null,
+      memoryMb: details.memory ?? null,
     };
 
     handleAcceptedSubmission(submission, tabId);
     break; // Only process the first accepted submission found
   }
+}
+
+/** "two-sum" → "Two Sum" */
+function titleFromSlug(slug: string): string {
+  return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function normalizeDifficulty(
@@ -147,47 +168,24 @@ async function commitSubmission(
   const paddedNumber = String(s.problemNumber).padStart(4, "0");
   const dirName = `${paddedNumber}-${s.problemSlug}`;
   const ext = getExtension(s.language);
-  const fileName = `${dirName}.${ext}`;
+  const commitMsg = `feat: solve ${paddedNumber}. ${s.problemTitle}`;
 
-  const statsLine = formatStats(s);
-
-  await putFile(
-    token,
-    repo,
-    `${dirName}/${fileName}`,
-    s.code,
-    `feat(${s.problemSlug}): add ${s.language} solution [${s.difficulty}]${statsLine}`
-  );
-
-  const readme = buildReadme(s, statsLine);
-  await putFile(
-    token,
-    repo,
-    `${dirName}/README.md`,
-    readme,
-    `docs(${s.problemSlug}): add problem README`
-  );
+  await putFile(token, repo, `${dirName}/solution.${ext}`, s.code, commitMsg);
+  await putFile(token, repo, `${dirName}/description.md`, buildDescription(s), commitMsg);
 }
 
-function formatStats(s: Submission): string {
-  const parts: string[] = [];
-  if (s.runtimeMs !== null) parts.push(`${s.runtimeMs}ms`);
-  if (s.memoryMb !== null) parts.push(`${s.memoryMb.toFixed(1)}MB`);
-  return parts.length ? ` — ${parts.join(", ")}` : "";
-}
-
-function buildReadme(s: Submission, statsLine: string): string {
+function buildDescription(s: Submission): string {
+  const paddedNumber = String(s.problemNumber).padStart(4, "0");
   const url = `https://leetcode.com/problems/${s.problemSlug}/`;
-  return [
-    `# ${String(s.problemNumber).padStart(4, "0")}. ${s.problemTitle}`,
+  const lines = [
+    `# ${paddedNumber}. ${s.problemTitle}`,
     "",
-    `**Difficulty:** ${s.difficulty}  `,
-    `**Link:** ${url}  `,
-    statsLine ? `**Stats:** ${statsLine.replace(" — ", "")}` : "",
-    "",
-  ]
-    .filter((line) => line !== null)
-    .join("\n");
+    `See: ${url}`,
+  ];
+  if (s.difficulty) lines.push("", `**Difficulty:** ${s.difficulty}`);
+  if (s.runtimeMs !== null) lines.push(`**Runtime:** ${s.runtimeMs} ms`);
+  if (s.memoryMb !== null) lines.push(`**Memory:** ${s.memoryMb} MB`);
+  return lines.join("\n") + "\n";
 }
 
 // ---------------------------------------------------------------------------
