@@ -186,7 +186,8 @@ function buildDescription(s: Submission): string {
     "",
     `See: ${url}`,
   ];
-  if (s.difficulty) lines.push("", `**Difficulty:** ${s.difficulty}`);
+  lines.push("");
+  if (s.difficulty) lines.push(`**Difficulty:** ${s.difficulty}`);
   if (s.runtimeMs !== null) lines.push(`**Runtime:** ${s.runtimeMs} ms`);
   if (s.memoryBytes !== null) lines.push(`**Memory:** ${(s.memoryBytes / 1_000_000).toFixed(2)} MB`);
   return lines.join("\n") + "\n";
