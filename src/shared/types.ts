@@ -7,7 +7,7 @@ export interface Submission {
   problemSlug: string;
   problemNumber: number;
   problemTitle: string;
-  difficulty: "Easy" | "Medium" | "Hard";
+  difficulty?: "Easy" | "Medium" | "Hard";
   language: string;
   code: string;
   runtimeMs: number | null;

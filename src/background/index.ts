@@ -114,9 +114,10 @@ function titleFromSlug(slug: string): string {
 function normalizeDifficulty(
   d: string | undefined
 ): Submission["difficulty"] {
+  if (d === "Easy") return "Easy";
   if (d === "Medium") return "Medium";
   if (d === "Hard") return "Hard";
-  return "Easy";
+  return undefined;
 }
 
 // ---------------------------------------------------------------------------
