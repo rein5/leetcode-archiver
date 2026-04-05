@@ -1,6 +1,6 @@
 # leetcode-archiver
 
-A Firefox extension that automatically backs up accepted LeetCode submissions to a private GitHub repository.
+A Firefox extension that automatically backs up accepted LeetCode submissions to a GitHub repository.
 
 **[Install from Firefox Add-ons](https://addons.mozilla.org/firefox/addon/leetcode-archiver/)**
 
