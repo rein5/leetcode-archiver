@@ -11,7 +11,7 @@ export interface Submission {
   language: string;
   code: string;
   runtimeMs: number | null;
-  memoryMb: number | null;
+  memoryBytes: number | null;
   submissionId: string;
 }
 

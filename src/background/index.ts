@@ -98,7 +98,7 @@ function handleGraphQLResponse(json: unknown, tabId: number) {
       language: details.lang?.name ?? "unknown",
       code: details.code ?? "",
       runtimeMs: details.runtime ?? null,
-      memoryMb: details.memory ?? null,
+      memoryBytes: details.memory ?? null,
     };
 
     handleAcceptedSubmission(submission, tabId);
@@ -188,7 +188,7 @@ function buildDescription(s: Submission): string {
   ];
   if (s.difficulty) lines.push("", `**Difficulty:** ${s.difficulty}`);
   if (s.runtimeMs !== null) lines.push(`**Runtime:** ${s.runtimeMs} ms`);
-  if (s.memoryMb !== null) lines.push(`**Memory:** ${s.memoryMb} MB`);
+  if (s.memoryBytes !== null) lines.push(`**Memory:** ${(s.memoryBytes / 1_000_000).toFixed(2)} MB`);
   return lines.join("\n") + "\n";
 }
 
