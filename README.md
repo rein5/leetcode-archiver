@@ -67,4 +67,4 @@ npm run dev            # watch mode, rebuilds on save
 
 To test changes, load `dist/manifest.json` as a temporary add-on via `about:debugging#/runtime/this-firefox` and reload after each build.
 
-**Stack:** TypeScript + Preact, built with Vite. Firefox MV2 (uses `webRequest.filterResponseData` to read GraphQL response bodies — not available in MV3 or Chrome).
+**Stack:** TypeScript + Preact, built with Vite. 
