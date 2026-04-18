@@ -1,5 +1,12 @@
 const API_BASE = "https://api.github.com";
 
+function encodeBase64(content: string): string {
+  const bytes = new TextEncoder().encode(content);
+  let binary = "";
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary);
+}
+
 interface GitHubUser {
   login: string;
   name: string | null;
@@ -55,7 +62,7 @@ export async function putFile(
   const sha = await getFileSha(token, repo, path);
   const body: Record<string, string> = {
     message,
-    content: btoa(unescape(encodeURIComponent(content))),
+    content: encodeBase64(content),
   };
   if (sha) body.sha = sha;
 
