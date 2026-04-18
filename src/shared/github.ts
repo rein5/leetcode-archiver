@@ -12,8 +12,9 @@ interface GitHubUser {
   name: string | null;
 }
 
-interface FileContentsResponse {
+interface FileState {
   sha: string;
+  content: string; // decoded UTF-8
 }
 
 async function ghFetch(
@@ -38,20 +39,22 @@ export async function verifyToken(token: string): Promise<GitHubUser> {
   return res.json();
 }
 
-/** Returns the SHA of an existing file, or null if it doesn't exist. */
-async function getFileSha(
+/** Returns existing file state (sha + decoded content), or null if not found. */
+async function getFileState(
   token: string,
   repo: string,
   path: string
-): Promise<string | null> {
+): Promise<FileState | null> {
   const res = await ghFetch(token, `/repos/${repo}/contents/${path}`);
   if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Failed to get file SHA: ${res.status}`);
-  const data: FileContentsResponse = await res.json();
-  return data.sha;
+  if (!res.ok) throw new Error(`Failed to get file: ${res.status}`);
+  const data: { sha: string; content: string } = await res.json();
+  const binary = atob(data.content.replace(/\n/g, ""));
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  return { sha: data.sha, content: new TextDecoder().decode(bytes) };
 }
 
-/** Creates or updates a file in the repository. */
+/** Creates or updates a file in the repository. No-ops if content is unchanged. */
 export async function putFile(
   token: string,
   repo: string,
@@ -59,12 +62,14 @@ export async function putFile(
   content: string,
   message: string
 ): Promise<void> {
-  const sha = await getFileSha(token, repo, path);
+  const existing = await getFileState(token, repo, path);
+  if (existing?.content === content) return;
+
   const body: Record<string, string> = {
     message,
     content: encodeBase64(content),
   };
-  if (sha) body.sha = sha;
+  if (existing) body.sha = existing.sha;
 
   const res = await ghFetch(token, `/repos/${repo}/contents/${path}`, {
     method: "PUT",
