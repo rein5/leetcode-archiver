@@ -23,5 +23,5 @@ export const LANGUAGE_EXTENSIONS: Record<string, string> = {
 };
 
 export function getExtension(langSlug: string): string {
-  return LANGUAGE_EXTENSIONS[langSlug.toLowerCase()] ?? langSlug;
+  return LANGUAGE_EXTENSIONS[langSlug.toLowerCase()] ?? "txt";
 }

@@ -170,7 +170,8 @@ async function commitSubmission(
   s: Submission
 ): Promise<void> {
   const paddedNumber = String(s.problemNumber).padStart(4, "0");
-  const dirName = `${paddedNumber}-${s.problemSlug}`;
+  const safeSlug = s.problemSlug.replace(/[^a-z0-9-]/g, "");
+  const dirName = `${paddedNumber}-${safeSlug}`;
   const ext = getExtension(s.language);
   const commitMsg = `feat: solve ${paddedNumber}. ${s.problemTitle}`;
 
