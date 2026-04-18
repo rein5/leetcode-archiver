@@ -54,13 +54,14 @@ async function getFileState(
   return { sha: data.sha, content: new TextDecoder().decode(bytes) };
 }
 
-/** Creates or updates a file in the repository. No-ops if content is unchanged. */
+/** Creates or updates a file in the repository. No-ops if content is unchanged. Retries once on SHA conflict. */
 export async function putFile(
   token: string,
   repo: string,
   path: string,
   content: string,
-  message: string
+  message: string,
+  retry = true,
 ): Promise<void> {
   const existing = await getFileState(token, repo, path);
   if (existing?.content === content) return;
@@ -75,6 +76,10 @@ export async function putFile(
     method: "PUT",
     body: JSON.stringify(body),
   });
+
+  if (res.status === 409 && retry) {
+    return putFile(token, repo, path, content, message, false);
+  }
 
   if (!res.ok) {
     const err = await res.text();
