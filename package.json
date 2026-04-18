@@ -1,6 +1,6 @@
 {
   "name": "leetcode-archiver",
-  "version": "1.0.0",
+  "version": "0.1.2",
   "description": "Firefox extension that backs up accepted LeetCode submissions to a private GitHub repository.",
   "scripts": {
     "build": "node build.mjs",
