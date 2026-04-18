@@ -53,6 +53,8 @@ function interceptGraphQL(
 // Parse GraphQL response and extract accepted submission
 // ---------------------------------------------------------------------------
 
+const processedSubmissions = new Set<string>();
+
 interface SubmissionDetails {
   id?: string;
   statusCode?: number; // 10 = Accepted
@@ -86,11 +88,16 @@ function handleGraphQLResponse(json: unknown, tabId: number) {
     // statusCode 10 = Accepted in LeetCode's system
     if (details.statusCode !== 10) continue;
 
+    const submissionId = String(details.id ?? "");
+    if (!submissionId || processedSubmissions.has(submissionId)) continue;
+
     const question = details.question;
     if (!question?.titleSlug || !question?.questionId) continue;
 
+    processedSubmissions.add(submissionId);
+
     const submission: Submission = {
-      submissionId: String(details.id ?? ""),
+      submissionId,
       problemSlug: question.titleSlug,
       problemNumber: parseInt(question.questionId, 10),
       problemTitle: titleFromSlug(question.titleSlug),
