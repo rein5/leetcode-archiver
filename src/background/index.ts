@@ -57,8 +57,6 @@ interface SubmissionDetails {
   statusCode?: number; // 10 = Accepted
   lang?: { name?: string; verboseName?: string };
   code?: string;
-  runtime?: number;  // ms
-  memory?: number;   // MB
   question?: {
     questionId?: string;        // numeric string, e.g. "1"
     titleSlug?: string;         // e.g. "two-sum"
@@ -95,8 +93,6 @@ function handleGraphQLResponse(json: unknown, tabId: number) {
       difficulty: normalizeDifficulty(question.difficulty),
       language: details.lang?.name ?? "unknown",
       code: details.code ?? "",
-      runtimeMs: details.runtime ?? null,
-      memoryBytes: details.memory ?? null,
     };
 
     handleAcceptedSubmission(submission, tabId);
@@ -185,10 +181,7 @@ function buildDescription(s: Submission): string {
     "",
     `See: ${url}`,
   ];
-  lines.push("");
-  if (s.difficulty) lines.push(`**Difficulty:** ${s.difficulty}`);
-  if (s.runtimeMs !== null) lines.push(`**Runtime:** ${s.runtimeMs} ms`);
-  if (s.memoryBytes !== null) lines.push(`**Memory:** ${(s.memoryBytes / 1_000_000).toFixed(2)} MB`);
+  if (s.difficulty) { lines.push(""); lines.push(`**Difficulty:** ${s.difficulty}`); }
   return lines.join("\n") + "\n";
 }
 

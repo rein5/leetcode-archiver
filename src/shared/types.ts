@@ -10,8 +10,6 @@ export interface Submission {
   difficulty?: "Easy" | "Medium" | "Hard";
   language: string;
   code: string;
-  runtimeMs: number | null;
-  memoryBytes: number | null;
 }
 
 export type UploadStatus = "uploading" | "success" | "error";
