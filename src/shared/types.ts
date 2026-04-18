@@ -12,7 +12,6 @@ export interface Submission {
   code: string;
   runtimeMs: number | null;
   memoryBytes: number | null;
-  submissionId: string;
 }
 
 export type UploadStatus = "uploading" | "success" | "error";
